@@ -5,6 +5,41 @@
         <script src="utilities.js"></script>
         <script src="graphics_utilities.js"></script>
         <script src="model_renderer.js"></script>
+        <script src="maze_generator.js"></script>
         <script src="programmable_goop.js"></script>
+
+        <script id="modelRendererVertexShaderID" type="webglsl-shader">#version 300 es
+            in vec3 position;
+            in vec3 normalCoord;
+            
+            uniform mat4 projectionViewMatrix;
+            uniform mat4 modelMatrix;
+
+            out vec3 normalVector;
+
+            void main(){
+                normalVector = normalize(mat3(modelMatrix) * normalCoord);
+                gl_Position = projectionViewMatrix * modelMatrix * vec4(position, 1.0);
+            }
+        </script>
+        <script id="modelRendererFragmentShaderID" type="webglsl-shader">#version 300 es
+                precision mediump float;
+
+                in vec3 normalVector;
+
+                uniform vec4 modelColor;
+
+                out vec4 finalColor;
+
+                void main(){
+                    vec3 ambient = vec3(0.2, 0.2, 0.2);
+                    vec3 direction = normalize(vec3(-1, -1, -1));
+                    vec3 diffuseColor = vec3(1, 1, 1);
+                    float diff = max(dot(normalVector, -direction), 0.0);
+                    vec3 diffuse = diff * diffuseColor * 0.5;
+                    vec3 result = (ambient + diffuse) * modelColor.xyz;
+                    finalColor = vec4(result, modelColor.w);
+                }
+        </script>
     </body>
 </html>

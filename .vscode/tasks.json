@@ -12,6 +12,16 @@
             "label": "run_win",
             "type": "shell",
             "command": "start C:/Users/Dave/Desktop/programmable_goop/index.html",
+        },
+        {
+            "label": "build_osx",
+            "type": "shell",
+            "command": "open -a \"Google Chrome\" /Users/dave/Desktop/programmable_goop/index.html",
+        },
+        {
+            "label": "run_osx",
+            "type": "shell",
+            "command": "open -a \"Google Chrome\" /Users/dave/Desktop/programmable_goop/index.html",
         }
     ]
 }
