@@ -1,5 +1,4 @@
-function xorshift(x)
-{
+function xorshift(x){
     x ^= x << 13;
     x ^= x >> 7;
     x ^= x << 17;
@@ -7,8 +6,5 @@ function xorshift(x)
 }
 
 function absoluteValue(v){
-    if(v >= 0){
-        return v;
-    }
-    return -v;
+    return v >= 0 ? v : -v;
 }

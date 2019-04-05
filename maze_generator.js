@@ -1,27 +1,18 @@
 var mazeGeneratorStack = [];
 
 class MazeCell {
-    x;
-    y;
-
-    northWall = true;
-    southWall = true;
-    eastWall = true;
-    westWall = true;
-    visited = false;
     constructor(x, y){
         this.x = x;
         this.y = y;
+        this.northWall = true;
+        this.southWall = true;
+        this.eastWall = true;
+        this.westWall = true;
+        this.visited = false;
     }   
 }
 
 class Maze {
-    width;
-    height;
-    seed;
-    cells = [];
-    startCell;
-    endCell;
     constructor(w, h, seed){
         this.width = w;
         this.height = h;
@@ -29,12 +20,15 @@ class Maze {
             seed--;
         }
         this.seed = seed;
+        this.cells = [];
         for(let i = 0; i < w; i++){
             this.cells[i] = [];
             for(let j = 0; j < h; j++){
                 this.cells[i][j] = new MazeCell(i, j);
             }
         }
+        this.startCell;
+        this.endCell;
     }
 }
 
@@ -116,7 +110,7 @@ function generateMaze(numCols, numRows, seed = 1){
     }
     
     return m;
-}
+} 
 
 function getUnvisitedCellNeighbors(maze, cell){
     let x = cell.x;

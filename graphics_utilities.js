@@ -1,5 +1,4 @@
 class Vector2 {
-    x; y;
     constructor(x = 0, y = 0){
         this.x = x;
         this.y = y;
@@ -20,8 +19,8 @@ class Vector2 {
             this.x /= l;
             this.y /= l;
         }else{
-            this.x /= 0;
-            this.y /= 0;
+            this.x = 0;
+            this.y = 0;
         }
     }
 
@@ -36,7 +35,6 @@ class Vector2 {
 }
 
 class Vector3 {
-    x; y; z;
     constructor(x = 0, y = 0, z = 0){
         this.x = x;
         this.y = y;
@@ -47,8 +45,35 @@ class Vector3 {
         return new Vector3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
     }
 
+    static sub(v1, v2){
+        return new Vector3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+    }
+
+    static div(v1, v2){
+        return new Vector3(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z);
+    }
+
     static scale(v, amt){
         return new Vector3(v.x * amt, v.y * amt, v.z * amt);
+    }
+
+    static cross(v1, v2){
+       return new Vector3((v1.y * v2.z) - (v1.z * v2.y), 
+                          (v1.z * v2.x) - (v1.x * v2.z),
+                          (v1.x * v2.y) - (v1.y * v2.x));
+    }
+
+    static length(v){
+        return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+    }
+
+    static normal(v){
+        let l = Vector3.length(v);
+        if(l != 0){
+            return new Vector3(v.x / l, v.y / l, v.z / l);
+        }else{
+            return new Vector3(0, 0, 0);
+        }
     }
 
     add(v){
@@ -63,6 +88,12 @@ class Vector3 {
         this.z -= v.z;
     }
 
+    div(v){
+        this.x /= v.x;
+        this.y /= v.y;
+        this.z /= v.z;
+    }
+
     length(){
         return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
@@ -74,9 +105,9 @@ class Vector3 {
             this.y /= l;
             this.z /= l;
         }else{
-            this.x /= 0;
-            this.y /= 0;
-            this.z /= 0;
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
         }
     }
 
@@ -92,7 +123,6 @@ class Vector3 {
 }
 
 class Vector4 {
-    x; y; z; w;
     constructor(x = 0, y = 0, z = 0, w = 0){
         this.x = x;
         this.y = y;
@@ -119,10 +149,10 @@ class Vector4 {
             this.z /= l;
             this.w /= l;
         }else{
-            this.x /= 0;
-            this.y /= 0;
-            this.z /= 0;
-            this.w /= 0;
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
+            this.w = 0;
         }
     }
 
@@ -139,7 +169,6 @@ class Vector4 {
 }
 
 class Quaternion {
-    x; y; z; w;
     constructor(x = 0, y = 0, z = 0, w = 1){
         this.x = x;
         this.y = y;
@@ -167,10 +196,10 @@ class Quaternion {
             this.z /= l;
             this.w /= l;
         }else{
-            this.x /= 0;
-            this.y /= 0;
-            this.z /= 0;
-            this.w /= 0;
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
+            this.w = 0;
         }
     }
 
@@ -206,7 +235,6 @@ class Quaternion {
 }
 
 class Matrix4 {
-    m;
     constructor(v = 1){
         this.m = [
             v, 0, 0, 0,
@@ -287,14 +315,6 @@ class Matrix4 {
 }
 
 class Camera {
-    projectionMatrix;
-    viewMatrix;
-    orientation;
-    position;
-    forward;
-    up;
-    right;
-
     constructor(){
         this.projectionMatrix = new Matrix4();
         this.viewMatrix = new Matrix4();
@@ -344,10 +364,6 @@ class Camera {
 }
 
 class DirectionalLight {
-    direction;
-    color;
-    ambient;
-
     constructor(dir = new Vector3(-1, -1, -1), col = new Vector3(1, 1, 1), amb = new Vector3(0.2, 0.2, 0.2)){
         this.direction = dir;
         this.color = col;
@@ -364,11 +380,6 @@ class DirectionalLight {
 }
 
 class PointLight {
-    postion;
-    ambient;
-    diffuse;
-    specular;
-
     constructor(p, a, d, s){
         this.postion = p;
         this.ambient = a;
@@ -397,6 +408,14 @@ function compileGLShader(gl, vsCode, fsCode){
     gl.attachShader(shaderProgram, fragShader);
     gl.linkProgram(shaderProgram);
     return shaderProgram;
+}
+
+function getSurfaceNormal(v1, v2, v3){
+    let va = Vector3.sub(v2, v1);
+    let vb = Vector3.sub(v3, v1);
+    let vc = Vector3.cross(va, vb);
+    vc.normalize();
+    return vc;
 }
 
 function generateUnitCubeVerticesIndexedWithNormals(verts, inds){
@@ -460,4 +479,92 @@ function generateUnitCubeVerticesIndexedWithNormals(verts, inds){
     inds.push(12); inds.push(13); inds.push(14); inds.push(14); inds.push(15); inds.push(12);
     inds.push(16); inds.push(17); inds.push(18); inds.push(18); inds.push(19); inds.push(16);
     inds.push(20); inds.push(21); inds.push(22); inds.push(22); inds.push(23); inds.push(20);
+}
+
+function generateIcoSphereVerticesIndexedWithNormals(verts, inds, divisions = 0){
+    if(divisions > 5){
+        divisions = 5;
+    }
+    
+    let vtxs = [];
+    let r = (1 + Math.sqrt(5)) / 2;
+    vtxs.push(new Vector3(0, 1, r));  
+    vtxs.push(new Vector3(0, -1, r)); 
+    vtxs.push(new Vector3(0, 1, -r)); 
+    vtxs.push(new Vector3(0, -1, -r));
+    vtxs.push(new Vector3(1, r, 0));  
+    vtxs.push(new Vector3(-1, r, 0)); 
+    vtxs.push(new Vector3(1, -r, 0)); 
+    vtxs.push(new Vector3(-1,-r, 0)); 
+    vtxs.push(new Vector3(r, 0, 1));  
+    vtxs.push(new Vector3(r, 0, -1)); 
+    vtxs.push(new Vector3(-r, 0, 1)); 
+    vtxs.push(new Vector3(-r, 0, -1));
+    for(let i = 0; i < 12; i++){
+        vtxs[i].normalize();
+        vtxs[i].div(new Vector3(2, 2, 2));
+        addVertex(verts, vtxs[i]);
+    }
+
+    function addVertex(vs, vtx){
+        if(typeof addVertex.counter == 'undefined') {
+            addVertex.counter = 0;
+        }
+        vs.push(vtx.x); vs.push(vtx.y); vs.push(vtx.z);
+        let n = Vector3.normal(vtx);
+        vs.push(n.x); vs.push(n.y); vs.push(n.z);
+        return addVertex.counter++;
+    }
+
+    function addTri(vs, is, v1, v2, v3, div){
+        if(div > 0){
+            let v2Denom = new Vector3(2, 2, 2);
+            let va = vtxs[v1];
+            let vb = vtxs[v2];
+            let vc = vtxs[v3];
+            let vab = Vector3.div(Vector3.add(vb, va), v2Denom);
+            let vbc = Vector3.div(Vector3.add(vb, vc), v2Denom);
+            let vca = Vector3.div(Vector3.add(va, vc), v2Denom);
+            vab.normalize(); vab.div(v2Denom);
+            vbc.normalize(); vbc.div(v2Denom);
+            vca.normalize(); vca.div(v2Denom);
+            vtxs.push(vab);
+            vtxs.push(vbc);
+            vtxs.push(vca);
+            let n1 = addVertex(vs, vab);
+            let n2 = addVertex(vs, vbc);
+            let n3 = addVertex(vs, vca);
+            addTri(vs, is, n1, v2, n2, div - 1);
+            addTri(vs, is, n2, v3, n3, div - 1);
+            addTri(vs, is, n3, v1, n1, div - 1);
+            addTri(vs, is, n1, n2, n3, div - 1);
+        }else{
+            is.push(v1); is.push(v2); is.push(v3);
+        }
+    }
+
+    addTri(verts, inds, 4, 0, 8, divisions);
+    addTri(verts, inds, 8, 0, 1, divisions);
+    addTri(verts, inds, 1, 0, 10, divisions);
+    addTri(verts, inds, 10, 0, 5, divisions);
+    addTri(verts, inds, 5, 0, 4, divisions);
+    addTri(verts, inds, 3, 6, 7, divisions);
+    addTri(verts, inds, 3, 7, 11, divisions);
+    addTri(verts, inds, 2, 3, 11, divisions);
+    addTri(verts, inds, 3, 2, 9, divisions);
+    addTri(verts, inds, 6, 3, 9, divisions);
+    addTri(verts, inds, 4, 8, 9, divisions);
+    addTri(verts, inds, 2, 4, 9, divisions);
+    addTri(verts, inds, 4, 2, 5, divisions);
+    addTri(verts, inds, 5, 2, 11, divisions);
+    addTri(verts, inds, 10, 5, 11, divisions);
+    addTri(verts, inds, 7, 10, 11, divisions);
+    addTri(verts, inds, 10, 7, 1, divisions);
+    addTri(verts, inds, 1, 7, 6, divisions);
+    addTri(verts, inds, 8, 1, 6, divisions);
+    addTri(verts, inds, 9, 8, 6, divisions);
+}
+
+function generateUVSphereIndexedWithNormals(verts, inds, divisions = 0){
+        
 }
