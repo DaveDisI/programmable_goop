@@ -8,3 +8,7 @@ function xorshift(x){
 function absoluteValue(v){
     return v >= 0 ? v : -v;
 }
+
+function randomInteger(max){
+    return Math.floor(Math.random() * max);
+}

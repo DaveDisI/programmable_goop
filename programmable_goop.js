@@ -39,6 +39,7 @@ var timer;
 var textSize = 15;
 
 var modelRenderer;
+var iModelRenderer;
 
 var startTime = 0;
 var endTime = 0;
@@ -53,22 +54,33 @@ var framesPerSecond = 0;
 var maze;
 var mazeModels = [];
 
+var mod;
+var isph;
 var light;
+
+var mats = [];
+
+var totalObjects = 30000;
 
 function update(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     handleCameraMovement();
     camera.updateView();
 
-    light.position.x = Math.sin(totalFrames * 0.005) * 2;
-    light.position.y = Math.cos(totalFrames * 0.005) * 2;
-    light.position.z = Math.cos(totalFrames * 0.005) * 2;
+    light.position.x = Math.sin(totalFrames * 0.001) * 10;
+    //light.position.y = Math.cos(totalFrames * 0.002) * 10;
+    light.position.z = Math.cos(totalFrames * 0.001) * 10;
 
-    modelRenderer.prepare();
+    modelRenderer.prepareRenderer();
     for(let i = 0; i < mazeModels.length; i++){
         modelRenderer.renderModel(camera, mazeModels[i]);
     }
 
+    iModelRenderer.prepareRenderer();
+    //iModelRenderer.renderModels(camera, mod, mats);
+    iModelRenderer.renderModel(camera, mod, mats.length);
+    
+    
     g2d.clearRect(0, 0, textCanvas.width, textCanvas.height);
     renderText("fps: " + framesPerSecond, 10, 0);
 
@@ -108,102 +120,83 @@ window.onload = function(){
     gl.clearColor(0.7, 0.8, 0.9, 1.0);
 
     camera = new Camera();
-    camera.position = new Vector3(0, 0, 3);
-    //camera.orientation = new Quaternion(0.12243693761362485, 0.9066331639807913, 0.24069628340949464, 0.3241771142922235);
+    camera.position = new Vector3(5.2441990459752255, 8.350125524843746, 12.274175305664611);
+    camera.orientation = new Quaternion(0.41672606067672807, 0.02790608166927432, -0.006805983268214414, 0.9085781857113214);
     camera.setPerspectiveProjection(70.0, (canvas.width / canvas.height), 0.001, 1000.0);
 
-    modelRenderer = new Model3DRenderer(gl);
+    iModelRenderer = new InstancedModel3DRenderer(gl);
+    modelRenderer = new Model3DRenderer(gl, iModelRenderer.vbo, iModelRenderer.ebo);
 
     let vs = [];
     let is = [];
     generateUnitCubeVerticesIndexedWithNormals(vs, is);
-    let mod = modelRenderer.generateModel(vs, is);
+    mod = iModelRenderer.generateModel(vs, is);
     mod.position.x += 1;
-    mazeModels.push(mod);
-
-    light = modelRenderer.copyModel(mod);
-    light.scale = new Vector3(0.2, 0.2, 0.2);
-    light.color = new Vector4(1, 1, 0, 1);
-    light.position = modelRenderer.lightPosition;
-    mazeModels.push(light);
+    mod.color = new Vector4(0, 0, 1, 1);
+    //mazeModels.push(mod);
 
     let v2s = [];
     let i2s = [];
     generateIcoSphereVerticesIndexedWithNormals(v2s, i2s, 3);
-    let isph = modelRenderer.generateModel(v2s, i2s);
-    isph.position.x -= 1;
-    mazeModels.push(isph);
+    light = iModelRenderer.generateModel(v2s, i2s);
+    light.scale = new Vector3(0.2, 0.2, 0.2);
+    light.color = new Vector4(1, 1, 0, 1);
+    light.position = iModelRenderer.lightPosition;
+    modelRenderer.lightPosition = light.position;
+    light.position.y += 10;
+    mazeModels.push(light);
 
+    maze = generateMaze(60, 60, randomInteger(232));
+    let mod2 = iModelRenderer.copyModel(mod);
+    mod2.position = new Vector3(maze.width / 2, 0, maze.height / 2);
+    mod2.scale = new Vector3(maze.width, 0.5, maze.height);
+    mod2.color = new Vector4(0.7, 0.7, 0.7, 1.0);
+    mazeModels.push(mod2);
 
-    // maze = generateMaze(absoluteValue(Math.floor(Math.random() * 25) + 1), 
-    //                     absoluteValue(Math.floor(Math.random() * 25) + 1), 
-    //                     (Math.random() * 100) + 1); 
-    // let m = modelRenderer.copyModel(mod);
-    // m.position = new Vector3((maze.width / 2), 0, (maze.height / 2));
-    // m.color = new Vector4(0.8, 0.8, 0.8, 1);
-    // m.scale = new Vector3(maze.width, 0.25, maze.height);
-    // mazeModels.push(m);
-    // for(let i = 0; i < maze.width; i++){
-    //     for(let j = 0; j < maze.height; j++){
-    //         let c = maze.cells[i][j];
-    //         if(c == maze.startCell){
-    //             let o = modelRenderer.copyModel(isph);
-    //             o.position.x = i + 0.5;
-    //             o.position.z = j + 0.5;
-    //             o.position.y += 0.5;
-    //             o.color = new Vector4(0, 1, 0, 1);
-    //             mazeModels.push(o);
-    //         }
-    //         else if(c == maze.endCell){
-    //             let o = modelRenderer.copyModel(isph);
-    //             o.position.x = i + 0.5;
-    //             o.position.z = j + 0.5;
-    //             o.position.y += 0.5;
-    //             o.color = new Vector4(1, 1, 0, 1);
-    //             mazeModels.push(o);
-    //         }
-    //         if(c.westWall){
-    //             let n = modelRenderer.copyModel(mod);
-    //             n.position.x = i;
-    //             n.position.z = j + 0.5;
-    //             n.position.y += 0.25;
-    //             n.scale.x = 0.125;
-    //             n.scale.y = 0.5;
-    //             n.color = new Vector4(0, 0, 1, 1);
-    //             mazeModels.push(n);
-    //         }
-    //         if(c.northWall){
-    //             let n = modelRenderer.copyModel(mod);
-    //             n.position.z = j;
-    //             n.position.y += 0.25;
-    //             n.position.x = i + 0.5;
-    //             n.scale.z = 0.125;
-    //             n.scale.y = 0.5;
-    //             n.color = new Vector4(0, 0, 1, 1);
-    //             mazeModels.push(n);
-    //         }
-    //         if(c.eastWall){
-    //             let n = modelRenderer.copyModel(mod);
-    //             n.position.x = i + 1;
-    //             n.position.z = j + 0.5;
-    //             n.position.y += 0.25;
-    //             n.scale.x = 0.125;
-    //             n.scale.y = 0.5;
-    //             n.color = new Vector4(0, 0, 1, 1);
-    //             mazeModels.push(n);
-    //         }
-    //         if(c.southWall){
-    //             let n = modelRenderer.copyModel(mod);
-    //             n.position.z = j + 1;
-    //             n.position.x = i + 0.5;
-    //             n.position.y += 0.25;
-    //             n.scale.z = 0.125;
-    //             n.scale.y = 0.5;
-    //             n.color = new Vector4(0, 0, 1, 1);
-    //             mazeModels.push(n);
-    //         }
-    //     }
-    // }
+    let mst = iModelRenderer.copyModel(light);
+    let men = iModelRenderer.copyModel(light);
+    mst.color = new Vector4(1, 1, 0, 1);
+    mst.scale = new Vector3(0.5, 0.5, 0.5);
+    men.scale = new Vector3(0.5, 0.5, 0.5);
+    men.color = new Vector4(0, 1, 0, 1);
+    mst.position = new Vector3(maze.startCell.x + 0.5, 0.5, maze.startCell.y + 0.5);
+    men.position = new Vector3(maze.endCell.x + 0.5, 0.5, maze.endCell.y + 0.5);
+    mazeModels.push(mst);
+    mazeModels.push(men);
+
+    let mm;
+    for(let i = 0; i < maze.height; i++){
+        for(let j = 0; j < maze.width; j++){
+            let cell = maze.cells[j][i];
+            if(cell.westWall){
+                mm = new Matrix4();
+                mm.scale(new Vector3(0.1, 0.5, 1));
+                mm.translate(new Vector3(j + 0.05, 0.5, i + 0.5));
+                mats.push(mm);
+            }
+            if(cell.northWall){
+                mm = new Matrix4();
+                mm.scale(new Vector3(1, 0.5, 0.1));
+                mm.translate(new Vector3(j + 0.5, 0.5, i + 0.05));
+                mats.push(mm);
+            }
+            if(cell.eastWall){
+                mm = new Matrix4();
+                mm.scale(new Vector3(0.1, 0.5, 1));
+                mm.translate(new Vector3(j + 0.95, 0.5, i + 0.5));
+                mats.push(mm);
+            }
+            if(cell.southWall){
+                mm = new Matrix4();
+                mm.scale(new Vector3(1, 0.5, 0.1));
+                mm.translate(new Vector3(j + 0.5, 0.5, i + 0.95));
+                mats.push(mm);
+            }
+        }
+    }
+    iModelRenderer.updateModelMatrices(mats);
+    modelRenderer.updateBuffers(iModelRenderer.vbo, iModelRenderer.ebo);
+
 
     startTime = new Date().getTime();
     timer = setInterval(update, 1);
